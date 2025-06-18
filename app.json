@@ -24,6 +24,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "e45869e1-dcfc-41a2-96d8-3afe6cd4a43b"
+      }
+    },
+    "owner": "itfelipe"
   }
 }
