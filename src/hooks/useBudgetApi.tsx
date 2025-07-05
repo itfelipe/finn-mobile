@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 import {
   CREATE_BUDGET,
   GET_BUDGETS,
@@ -7,6 +6,7 @@ import {
   DELETE_BUDGET,
   GET_BUDGETS_BY_PERIOD,
 } from "../api";
+import api from "../api/axios";
 
 export function useCreateBudget(token: string | null) {
   const [loading, setLoading] = useState(false);
@@ -16,7 +16,7 @@ export function useCreateBudget(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.post(CREATE_BUDGET, data, {
+      const res = await api.post(CREATE_BUDGET, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -40,7 +40,7 @@ export function useBudgets(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(GET_BUDGETS, {
+      const res = await api.get(GET_BUDGETS, {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });
@@ -66,7 +66,7 @@ export function useBudgetByPeriod(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(GET_BUDGETS_BY_PERIOD, {
+      const res = await api.get(GET_BUDGETS_BY_PERIOD, {
         headers: { Authorization: `Bearer ${token}` },
         params,
       });
@@ -92,7 +92,7 @@ export function useUpdateBudget(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.put(UPDATE_BUDGET(id), data, {
+      const res = await api.put(UPDATE_BUDGET(id), data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -115,7 +115,7 @@ export function useDeleteBudget(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.delete(DELETE_BUDGET(id), {
+      const res = await api.delete(DELETE_BUDGET(id), {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;

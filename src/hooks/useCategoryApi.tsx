@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { API_URL } from "../api";
+import api from "../api/axios";
 
 export function useCategories() {
   const [categories, setCategories] = useState([]);
@@ -11,7 +11,7 @@ export function useCategories() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(`${API_URL}/categories`);
+      const res = await api.get(`${API_URL}/categories`);
       setCategories(res.data);
       return res.data;
     } catch (err: any) {

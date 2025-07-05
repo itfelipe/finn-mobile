@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
   useCreateBudget,
 } from "../../hooks/useBudgetApi";
 import { useCategories } from "../../hooks/useCategoryApi"; // supondo que você tenha esse hook
+import { useFocusEffect } from "@react-navigation/native";
 
 const months = [
   "Janeiro",
@@ -82,6 +83,14 @@ const BudgetsScreen: React.FC = () => {
     fetchBudgets({ month: monthString });
   }, [selectedMonth]);
 
+  useFocusEffect(
+    useCallback(() => {
+      const year = new Date().getFullYear();
+      const monthIndex = months.indexOf(selectedMonth) + 1;
+      const monthString = `${year}-${monthIndex.toString().padStart(2, "0")}`;
+      fetchBudgets({ month: monthString });
+    }, [])
+  );
   // Busca categorias (só na primeira vez)
   useEffect(() => {
     fetchCategories();

@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import Header from "../../components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -50,6 +51,7 @@ const TransactionsScreen: React.FC = () => {
     transactions,
     loading: loadingTransactions,
   } = useTransactions(token);
+
   const { updateTransaction, loading: loadingUpdate } =
     useUpdateTransaction(token);
   const { deleteTransaction, loading: loadingDelete } =
@@ -59,6 +61,9 @@ const TransactionsScreen: React.FC = () => {
     categories,
     loading: loadingCategories,
   } = useCategories(token);
+
+  // Filtro de categoria
+  const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
 
   // Modal de edição
   const [editModal, setEditModal] = useState(false);
@@ -73,6 +78,11 @@ const TransactionsScreen: React.FC = () => {
   useEffect(() => {
     fetchTransactions();
   }, [selectedMonth]);
+
+  // Busca categorias ao abrir tela
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // Carrega categorias ao abrir modal de edição
   useEffect(() => {
@@ -93,7 +103,9 @@ const TransactionsScreen: React.FC = () => {
   // Filtra transações pelo mês selecionado
   const transactionsOfMonth = transactions.filter((t) => {
     const transactionMonth = dayjs(t.createdAt).month();
-    return transactionMonth === months.indexOf(selectedMonth);
+    console.log(transactionMonth);
+    const matchesMonth = transactionMonth === months.indexOf(selectedMonth);
+    return matchesMonth;
   });
 
   // Abrir modal de edição
@@ -191,6 +203,56 @@ const TransactionsScreen: React.FC = () => {
           )}
         />
 
+        {/* Filtro de categorias */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 12,
+            paddingTop: 12,
+            gap: 8,
+            marginBottom: 10,
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => setSelectedCategory(null)}
+            style={[
+              styles.categoryFilter,
+              !selectedCategory && styles.selectedCategoryFilter,
+            ]}
+          >
+            <Text
+              style={{
+                color: !selectedCategory ? "#fff" : "#222",
+                fontWeight: !selectedCategory ? "bold" : "normal",
+              }}
+            >
+              Todas
+            </Text>
+          </TouchableOpacity>
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat.id}
+              onPress={() => setSelectedCategory(cat)}
+              style={[
+                styles.categoryFilter,
+                selectedCategory?.id === cat.id &&
+                  styles.selectedCategoryFilter,
+              ]}
+            >
+              <Text
+                style={{
+                  color: selectedCategory?.id === cat.id ? "#fff" : "#222",
+                  fontWeight:
+                    selectedCategory?.id === cat.id ? "bold" : "normal",
+                }}
+              >
+                {cat.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
         <Text style={{ fontSize: 20, padding: 12, paddingBottom: 0 }}>
           Transações
         </Text>
@@ -238,7 +300,6 @@ const TransactionsScreen: React.FC = () => {
           <View style={styles.modalBg}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Editar transação</Text>
-
               <TextInput
                 value={editAmount}
                 onChangeText={setEditAmount}
@@ -246,7 +307,6 @@ const TransactionsScreen: React.FC = () => {
                 style={styles.input}
                 placeholder="Valor"
               />
-
               {/* Seleção de categoria */}
               <TouchableOpacity
                 style={[
@@ -264,7 +324,6 @@ const TransactionsScreen: React.FC = () => {
                 </Text>
                 <Text style={{ color: "#2196F3", fontWeight: "bold" }}>▼</Text>
               </TouchableOpacity>
-
               {/* Modal de categorias */}
               <Modal
                 visible={showCategoryModal}
@@ -323,7 +382,6 @@ const TransactionsScreen: React.FC = () => {
                   </View>
                 </View>
               </Modal>
-
               {/* Tipo */}
               <View style={{ flexDirection: "row", marginBottom: 12, gap: 10 }}>
                 <TouchableOpacity
@@ -359,7 +417,6 @@ const TransactionsScreen: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-
               <View style={{ flexDirection: "row", marginTop: 12 }}>
                 <TouchableOpacity
                   style={[styles.modalButton, { backgroundColor: "#2196F3" }]}
@@ -397,7 +454,6 @@ const TransactionsScreen: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  // ... mesmos estilos de antes ...
   container: { backgroundColor: "#f2f2f2" },
   monthNav: {
     backgroundColor: "#fff",
@@ -449,7 +505,19 @@ const styles = StyleSheet.create({
   entrada: { backgroundColor: "#22c55e" },
   saida: { backgroundColor: "#ef4444" },
   typeTagText: { color: "#fff", fontWeight: "bold", fontSize: 15 },
-
+  // Filtro de categoria
+  categoryFilter: {
+    backgroundColor: "#eee",
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginRight: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 32,
+  },
+  selectedCategoryFilter: {
+    backgroundColor: "#2196F3",
+  },
   // Modal styles
   modalBg: {
     flex: 1,

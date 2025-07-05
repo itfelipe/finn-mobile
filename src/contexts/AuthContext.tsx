@@ -6,6 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setAxiosLogoutHandler } from "../api/axios";
 
 // Defina o tipo do usuário conforme sua API
 export type User = {
@@ -30,6 +31,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    setAxiosLogoutHandler(signOut);
+  }, []);
   // Carrega o usuário salvo ao abrir o app
   useEffect(() => {
     const loadStorage = async () => {

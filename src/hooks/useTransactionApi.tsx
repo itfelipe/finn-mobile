@@ -1,5 +1,4 @@
 import { useState } from "react";
-import axios from "axios";
 import {
   CREATE_TRANSACTION,
   GET_TRANSACTIONS,
@@ -8,6 +7,7 @@ import {
   TRANSACTION_SUMMARY,
   GET_TRANSACTION_BY_ID,
 } from "../api";
+import api from "../api/axios";
 
 export function useCreateTransaction(token: string | null) {
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export function useCreateTransaction(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.post(CREATE_TRANSACTION, data, {
+      const res = await api.post(CREATE_TRANSACTION, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -41,7 +41,7 @@ export function useTransactions(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(GET_TRANSACTIONS, {
+      const res = await api.get(GET_TRANSACTIONS, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTransactions(res.data);
@@ -65,7 +65,7 @@ export function useTransactionById(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(GET_TRANSACTION_BY_ID(id), {
+      const res = await api.get(GET_TRANSACTION_BY_ID(id), {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTransaction(res.data);
@@ -88,7 +88,7 @@ export function useUpdateTransaction(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.put(UPDATE_TRANSACTION(id), data, {
+      const res = await api.put(UPDATE_TRANSACTION(id), data, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -111,7 +111,7 @@ export function useDeleteTransaction(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.delete(DELETE_TRANSACTION(id), {
+      const res = await api.delete(DELETE_TRANSACTION(id), {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -135,7 +135,7 @@ export function useTransactionsSummary(token: string | null) {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(TRANSACTION_SUMMARY, {
+      const res = await api.get(TRANSACTION_SUMMARY, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setSummary(res.data);

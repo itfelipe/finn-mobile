@@ -1,10 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import { REGISTER, LOGIN, PROFILE } from "../api";
+import api from "../api/axios";
 
 // Busca perfil com o token
 async function fetchUserProfile(token: string) {
-  const res = await axios.get(PROFILE, {
+  const res = await api.get(PROFILE, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;
@@ -28,7 +28,7 @@ export function useRegister() {
     setError(null);
     try {
       // Cadastra e pega token
-      const res = await axios.post(REGISTER, { name, email, password });
+      const res = await api.post(REGISTER, { name, email, password });
       const { accessToken, refreshToken } = res.data;
 
       // Busca o perfil com o accessToken
@@ -62,7 +62,7 @@ export function useLogin() {
     setError(null);
     try {
       // Loga e pega token
-      const res = await axios.post(LOGIN, { email, password });
+      const res = await api.post(LOGIN, { email, password });
       const { accessToken, refreshToken } = res.data;
 
       // Busca o perfil com o accessToken
@@ -89,7 +89,7 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.get(PROFILE, {
+      const res = await api.get(PROFILE, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setProfile(res.data);
