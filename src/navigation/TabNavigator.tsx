@@ -2,6 +2,7 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 import Dashboard from "../screens/Dashboard";
 import Transactions from "../screens/Transactions";
@@ -10,11 +11,17 @@ import Settings from "../screens/Settings";
 
 const Tab = createBottomTabNavigator();
 
-const AddButton = ({ onPress }: { onPress: () => void }) => (
-  <TouchableOpacity style={styles.addButton} onPress={onPress}>
-    <Ionicons name="add" size={32} color="#222" />
-  </TouchableOpacity>
-);
+const AddButton = () => {
+  const navigation = useNavigation();
+  return (
+    <TouchableOpacity
+      style={styles.addButton}
+      onPress={() => navigation.navigate("NewTransaction")}
+    >
+      <Ionicons name="add" size={32} color="#222" />
+    </TouchableOpacity>
+  );
+};
 
 function BottomTabs() {
   return (
@@ -42,7 +49,6 @@ function BottomTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Transactions"
         component={Transactions}
@@ -57,17 +63,19 @@ function BottomTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Add"
         component={Dashboard}
         options={{
-          tabBarButton: (props) => (
-            <AddButton onPress={() => console.log("Adicionar Transação")} />
-          ),
+          tabBarButton: (props) => <AddButton />,
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Previne navegação padrão para a rota "Add"
+            e.preventDefault();
+          },
         }}
       />
-
       <Tab.Screen
         name="Budgets"
         component={Budgets}
@@ -82,7 +90,6 @@ function BottomTabs() {
           ),
         }}
       />
-
       <Tab.Screen
         name="Settings"
         component={Settings}
@@ -115,7 +122,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#bbb",
     justifyContent: "center",
     alignItems: "center",
-    top: -30,
+    top: -20,
     zIndex: 2,
     borderWidth: 3,
     borderColor: "#fff",

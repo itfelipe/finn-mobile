@@ -19,9 +19,8 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   return (
     <View style={styles.header}>
-      <View style={{ flexDirection: "row" }}>
-        <Ionicons name={"bandage"} size={24} />
-
+      <View style={{ flexDirection: "row", alignItems: "center" }}>
+        <Ionicons name="person-circle-outline" size={32} color="#555" />
         <Text style={styles.username}>{userName}</Text>
       </View>
 

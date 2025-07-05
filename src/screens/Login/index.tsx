@@ -6,8 +6,10 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  Image,
 } from "react-native";
 import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
 
 const API_URL = "http://SEU_BACKEND_URL/api/auth/login";
 
@@ -16,6 +18,8 @@ const Login: React.FC = () => {
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const navigation = useNavigation();
+
   const handleLogin = async () => {
     setLoading(true);
     try {
@@ -23,9 +27,7 @@ const Login: React.FC = () => {
         email,
         password: senha,
       });
-      // Aqui você pode salvar o token e navegar pra home
       Alert.alert("Login realizado com sucesso!");
-      // Exemplo: AsyncStorage.setItem('token', response.data.token);
     } catch (error: any) {
       Alert.alert(
         "Erro",
@@ -38,10 +40,10 @@ const Login: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Logo (troque por <Image /> se tiver logo) */}
-      <Text style={styles.logoText}>Logo</Text>
-      <View style={styles.logoBox} />
-
+      <Image
+        source={require("../../assets/logo.png")}
+        style={{ width: 200, height: 80, marginBottom: 40 }}
+      />
       <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
@@ -58,6 +60,9 @@ const Login: React.FC = () => {
         onChangeText={setSenha}
         secureTextEntry
       />
+      <TouchableOpacity onPress={() => navigation.navigate("RegisterScreen")}>
+        <Text>Não tem conta? Registre-se</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}

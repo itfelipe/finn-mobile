@@ -6,80 +6,109 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ScrollView,
 } from "react-native";
 import axios from "axios";
-
-const API_URL = "http://SEU_BACKEND_URL/api/auth/register";
+import BackButtonHeader from "../../components/BackButton";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmar, setConfirmar] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showSenha, setShowSenha] = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+
+  const navigation = useNavigation();
 
   const handleRegister = async () => {
     if (senha !== confirmar) {
       Alert.alert("Erro", "As senhas não coincidem");
       return;
     }
-    setLoading(true);
-    try {
-      await axios.post(API_URL, {
-        email,
-        password: senha,
-      });
-      Alert.alert("Cadastro realizado com sucesso!");
-      // Aqui você pode navegar pro login, por exemplo
-    } catch (error: any) {
-      Alert.alert(
-        "Erro",
-        error?.response?.data?.message || "Falha ao cadastrar"
-      );
-    } finally {
-      setLoading(false);
-    }
+    navigation.navigate("NameScreen");
   };
 
   return (
-    <View style={styles.container}>
-      {/* Logo */}
-      <Text style={styles.logoText}>Logo</Text>
-      <View style={styles.logoBox} />
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <BackButtonHeader />
+      <ScrollView>
+        <View style={styles.container}>
+          <Text style={styles.logoText}>Logo</Text>
+          <View style={styles.logoBox} />
 
-      <Text style={styles.title}>Cadastrar</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="senha"
-        value={senha}
-        onChangeText={setSenha}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="confirmar"
-        value={confirmar}
-        onChangeText={setConfirmar}
-        secureTextEntry
-      />
+          <Text style={styles.title}>Cadastrar</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleRegister}
-        disabled={loading}
-      >
-        <Text style={styles.buttonText}>
-          {loading ? "Cadastrando..." : "Criar conta"}
-        </Text>
-      </TouchableOpacity>
-    </View>
+          {/* Campo senha com botão olhinho */}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              placeholder="senha"
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry={!showSenha}
+            />
+            <TouchableOpacity
+              onPress={() => setShowSenha((v) => !v)}
+              style={styles.eyeIcon}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={showSenha ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Campo confirmar senha com botão olhinho */}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+              placeholder="confirmar"
+              value={confirmar}
+              onChangeText={setConfirmar}
+              secureTextEntry={!showConfirmar}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmar((v) => !v)}
+              style={styles.eyeIcon}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons
+                name={showConfirmar ? "eye-off-outline" : "eye-outline"}
+                size={22}
+                color="#666"
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { opacity: email === "" || senha === "" ? 0.4 : 1 },
+            ]}
+            onPress={handleRegister}
+            disabled={loading || email === "" || senha === ""}
+          >
+            <Text style={styles.buttonText}>
+              {loading ? "Cadastrando..." : "Próximo"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -131,6 +160,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "600",
     color: "#222",
+  },
+  passwordContainer: {
+    width: 260,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#ddd",
+    borderRadius: 6,
+    marginBottom: 12,
+  },
+  eyeIcon: {
+    paddingHorizontal: 10,
   },
 });
 

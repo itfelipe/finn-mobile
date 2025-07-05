@@ -7,6 +7,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const mockBudgets = [
   { id: "1", name: "Mercado", used: 320, limit: 500 },
@@ -20,57 +21,58 @@ export default function Dashboard() {
   const balance = totalIncome - totalExpense;
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Olá, Felipe 👋</Text>
-          <Text style={styles.subtitle}>Aqui está o seu resumo</Text>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Olá, Felipe 👋</Text>
+            <Text style={styles.subtitle}>Aqui está o seu resumo</Text>
+          </View>
+          <Ionicons name="person-circle-outline" size={48} color="#555" />
         </View>
-        <Ionicons name="person-circle-outline" size={48} color="#555" />
-      </View>
 
-      {/* Summary */}
-      <View style={styles.summary}>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryLabel}>Entradas</Text>
-          <Text style={styles.income}>R$ {totalIncome}</Text>
+        {/* Summary */}
+        <View style={styles.summary}>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryLabel}>Entradas</Text>
+            <Text style={styles.income}>R$ {totalIncome}</Text>
+          </View>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryLabel}>Saídas</Text>
+            <Text style={styles.expense}>R$ {totalExpense}</Text>
+          </View>
+          <View style={styles.summaryBox}>
+            <Text style={styles.summaryLabel}>Saldo</Text>
+            <Text style={styles.balance}>R$ {balance}</Text>
+          </View>
         </View>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryLabel}>Saídas</Text>
-          <Text style={styles.expense}>R$ {totalExpense}</Text>
-        </View>
-        <View style={styles.summaryBox}>
-          <Text style={styles.summaryLabel}>Saldo</Text>
-          <Text style={styles.balance}>R$ {balance}</Text>
-        </View>
-      </View>
 
-      {/* Orçamentos */}
-      <View style={styles.budgetSection}>
-        <Text style={styles.sectionTitle}>Orçamentos</Text>
-        <FlatList
-          data={mockBudgets}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            const percent = Math.min((item.used / item.limit) * 100, 100);
-            return (
-              <View style={styles.budgetItem}>
-                <Text style={styles.budgetTitle}>{item.name}</Text>
-                <Text style={styles.budgetUsage}>
-                  R$ {item.used} / {item.limit}
-                </Text>
-                <View style={styles.progressBarBackground}>
-                  <View
-                    style={[styles.progressBarFill, { width: `${percent}%` }]}
-                  />
+        {/* Orçamentos */}
+        <View style={styles.budgetSection}>
+          <Text style={styles.sectionTitle}>Orçamentos</Text>
+          <FlatList
+            data={mockBudgets}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => {
+              const percent = Math.min((item.used / item.limit) * 100, 100);
+              return (
+                <View style={styles.budgetItem}>
+                  <Text style={styles.budgetTitle}>{item.name}</Text>
+                  <Text style={styles.budgetUsage}>
+                    R$ {item.used} / {item.limit}
+                  </Text>
+                  <View style={styles.progressBarBackground}>
+                    <View
+                      style={[styles.progressBarFill, { width: `${percent}%` }]}
+                    />
+                  </View>
                 </View>
-              </View>
-            );
-          }}
-        />
+              );
+            }}
+          />
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
