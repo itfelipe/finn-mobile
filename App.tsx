@@ -1,11 +1,11 @@
 import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import TabNavigator from "./src/navigation/TabNavigator";
+import RootNavigator from "./src/navigation";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <TabNavigator />
-    </NavigationContainer>
+    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+      <RootNavigator />
+    </SafeAreaView>
   );
 }
