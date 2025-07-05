@@ -1,31 +1,62 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
+  ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const mockBudgets = [
-  { id: "1", name: "Mercado", used: 320, limit: 500 },
-  { id: "2", name: "Farmácia", used: 150, limit: 200 },
-  { id: "3", name: "Transporte", used: 180, limit: 300 },
-];
+import { useTransactionsSummary } from "../../hooks/useTransactionApi";
+import { useBudgets } from "../../hooks/useBudgetApi";
+import { useTransactions } from "../../hooks/useTransactionApi"; // Adicione aqui
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Dashboard() {
-  const totalIncome = 4500;
-  const totalExpense = 2300;
+  const { user } = useAuth();
+  const token = user?.accessToken || null;
+
+  // Resumo de transações
+  const {
+    fetchSummary,
+    summary,
+    loading: loadingSummary,
+  } = useTransactionsSummary(token);
+
+  // Orçamentos
+  const { fetchBudgets, budgets, loading: loadingBudgets } = useBudgets(token);
+
+  // Últimas transações
+  const {
+    fetchTransactions,
+    transactions,
+    loading: loadingTransactions,
+  } = useTransactions(token);
+
+  useEffect(() => {
+    fetchSummary();
+    fetchBudgets();
+    fetchTransactions();
+  }, []);
+
+  const totalIncome = summary?.entradas || 0;
+  const totalExpense = summary?.saidas || 0;
   const balance = totalIncome - totalExpense;
+  console.log(summary);
+
+  // Pega as 10 últimas transações
+  const last10Transactions = transactions.slice(0, 10);
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Olá, Felipe 👋</Text>
+            <Text style={styles.greeting}>
+              Olá, {user?.name?.split(" ")[0] || "Usuário"} 👋
+            </Text>
             <Text style={styles.subtitle}>Aqui está o seu resumo</Text>
           </View>
           <Ionicons name="person-circle-outline" size={48} color="#555" />
@@ -35,41 +66,101 @@ export default function Dashboard() {
         <View style={styles.summary}>
           <View style={styles.summaryBox}>
             <Text style={styles.summaryLabel}>Entradas</Text>
-            <Text style={styles.income}>R$ {totalIncome}</Text>
+            <Text style={styles.income}>
+              {loadingSummary ? <ActivityIndicator /> : `R$ ${totalIncome}`}
+            </Text>
           </View>
           <View style={styles.summaryBox}>
             <Text style={styles.summaryLabel}>Saídas</Text>
-            <Text style={styles.expense}>R$ {totalExpense}</Text>
+            <Text style={styles.expense}>
+              {loadingSummary ? <ActivityIndicator /> : `R$ ${totalExpense}`}
+            </Text>
           </View>
           <View style={styles.summaryBox}>
             <Text style={styles.summaryLabel}>Saldo</Text>
-            <Text style={styles.balance}>R$ {balance}</Text>
+            <Text style={styles.balance}>
+              {loadingSummary ? <ActivityIndicator /> : `R$ ${balance}`}
+            </Text>
           </View>
         </View>
 
         {/* Orçamentos */}
         <View style={styles.budgetSection}>
           <Text style={styles.sectionTitle}>Orçamentos</Text>
-          <FlatList
-            data={mockBudgets}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => {
-              const percent = Math.min((item.used / item.limit) * 100, 100);
-              return (
-                <View style={styles.budgetItem}>
-                  <Text style={styles.budgetTitle}>{item.name}</Text>
-                  <Text style={styles.budgetUsage}>
-                    R$ {item.used} / {item.limit}
+          {loadingBudgets ? (
+            <ActivityIndicator />
+          ) : (
+            <FlatList
+              data={budgets}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => {
+                const percent = Math.min(
+                  (item.totalUsed / item.limit) * 100,
+                  100
+                );
+                return (
+                  <TouchableOpacity
+                    style={styles.budgetItem}
+                    onPress={() => console.log(item)}
+                  >
+                    <Text style={styles.budgetTitle}>{item.name}</Text>
+                    <Text style={styles.budgetUsage}>
+                      R$ {item.totalUsed} / {item.limit}
+                    </Text>
+                    <View style={styles.progressBarBackground}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          { width: `${percent}%` },
+                        ]}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+              ListEmptyComponent={
+                <Text style={{ color: "#999" }}>
+                  Nenhum orçamento cadastrado ainda.
+                </Text>
+              }
+            />
+          )}
+        </View>
+
+        {/* Últimas transações */}
+        <View style={styles.lastTransactionsSection}>
+          <Text style={styles.sectionTitle}>Últimas Transações</Text>
+          {loadingTransactions ? (
+            <ActivityIndicator />
+          ) : (
+            <FlatList
+              data={last10Transactions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.transactionItem}
+                  onPress={() => console.log(item)}
+                >
+                  <Text style={styles.transactionDesc}>{item.title}</Text>
+                  <Text
+                    style={[
+                      styles.transactionValue,
+                      item.type === "entrada"
+                        ? { color: "#22c55e" }
+                        : { color: "#ef4444" },
+                    ]}
+                  >
+                    {item.type === "entrada" ? "+" : "-"}R${item.amount}
                   </Text>
-                  <View style={styles.progressBarBackground}>
-                    <View
-                      style={[styles.progressBarFill, { width: `${percent}%` }]}
-                    />
-                  </View>
-                </View>
-              );
-            }}
-          />
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={
+                <Text style={{ color: "#999" }}>
+                  Nenhuma transação registrada ainda.
+                </Text>
+              }
+            />
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -86,7 +177,6 @@ const styles = StyleSheet.create({
   },
   greeting: { fontSize: 22, fontWeight: "bold" },
   subtitle: { color: "#666" },
-
   summary: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -97,8 +187,7 @@ const styles = StyleSheet.create({
   income: { fontSize: 18, color: "green", fontWeight: "bold" },
   expense: { fontSize: 18, color: "red", fontWeight: "bold" },
   balance: { fontSize: 18, color: "#000", fontWeight: "bold" },
-
-  budgetSection: { flex: 1 },
+  budgetSection: { marginBottom: 32 },
   sectionTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
   budgetItem: { marginBottom: 16 },
   budgetTitle: { fontSize: 16 },
@@ -114,15 +203,20 @@ const styles = StyleSheet.create({
     backgroundColor: "#4caf50",
     borderRadius: 4,
   },
-
-  addButton: {
-    flexDirection: "row",
-    backgroundColor: "#4caf50",
-    padding: 12,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 16,
+  lastTransactionsSection: {
+    marginTop: 24,
+    flex: 1,
   },
-  addButtonText: { color: "#fff", marginLeft: 8, fontWeight: "bold" },
+  transactionItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  transactionDesc: { fontSize: 15, color: "#222" },
+  transactionValue: {
+    fontSize: 15,
+    fontWeight: "bold",
+  },
 });

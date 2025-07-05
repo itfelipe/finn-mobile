@@ -7,32 +7,65 @@ import {
   StyleSheet,
   Modal,
   FlatList,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-
-const mockCategories: { id: string; name: string }[] = [
-  { id: "1", name: "Alimentação" },
-  { id: "2", name: "Transporte" },
-  { id: "3", name: "Educação" },
-  { id: "4", name: "Lazer" },
-  { id: "5", name: "Saúde" },
-  { id: "6", name: "Outros" },
-];
+import { useAuth } from "../../contexts/AuthContext";
+import { useCreateTransaction } from "../../hooks/useTransactionApi";
+import { useCategories } from "../../hooks/useCategoryApi";
+import { useNavigation } from "@react-navigation/native";
 
 export default function NewTransactionScreen() {
-  const [type, setType] = useState("entrada");
-  const [value, setValue] = useState("");
-  const [category, setCategory] = useState(null);
-  const [categories, setCategories] = useState([]);
+  const [type, setType] = useState<"entrada" | "saida">("entrada");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState<{ id: string; name: string } | null>(
+    null
+  );
   const [modalVisible, setModalVisible] = useState(false);
 
+  const { user } = useAuth();
+  const token = user?.accessToken || null;
+  const navigation = useNavigation();
+  // Hooks
+  const { createTransaction, loading, error } = useCreateTransaction(token);
+  const {
+    categories,
+    loading: loadingCategories,
+    fetchCategories,
+  } = useCategories();
+
   useEffect(() => {
-    setCategories(mockCategories);
+    fetchCategories();
   }, []);
+
+  const handleAdd = async () => {
+    if (!amount || !category) {
+      Alert.alert("Preencha todos os campos");
+      return;
+    }
+
+    try {
+      await createTransaction({
+        title: category.name, // Você pode permitir customizar depois
+        amount: parseFloat(amount.replace(",", ".")),
+        type,
+        categoryId: Number(category.id),
+      });
+      Alert.alert("Sucesso", "Transação adicionada com sucesso!");
+      setAmount("");
+      navigation.goBack();
+      setCategory(null);
+      setType("entrada");
+    } catch (err: any) {
+      Alert.alert("Erro", error || "Falha ao adicionar transação");
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Nova transação</Text>
 
+      {/* Entrada/Saída */}
       <View style={styles.radioRow}>
         <Text style={styles.label}>Entrada</Text>
         <TouchableOpacity onPress={() => setType("entrada")}>
@@ -40,21 +73,15 @@ export default function NewTransactionScreen() {
             style={[styles.radio, type === "entrada" && styles.selectedRadio]}
           />
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.radioRow}>
-        <Text style={styles.label}>Saída</Text>
+        <Text style={[styles.label, { marginLeft: 30 }]}>Saída</Text>
         <TouchableOpacity onPress={() => setType("saida")}>
           <View
-            style={[
-              styles.radio,
-              type === "saida" && styles.selectedRadio,
-              !type && styles.unselectedRadio,
-            ]}
+            style={[styles.radio, type === "saida" && styles.selectedRadio]}
           />
         </TouchableOpacity>
       </View>
 
+      {/* Categoria */}
       <Text style={styles.label}>Categoria</Text>
       <TouchableOpacity
         style={styles.dropdown}
@@ -68,21 +95,25 @@ export default function NewTransactionScreen() {
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalBg}>
           <View style={styles.modalContent}>
-            <FlatList
-              data={categories}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.categoryItem}
-                  onPress={() => {
-                    setCategory(item);
-                    setModalVisible(false);
-                  }}
-                >
-                  <Text>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-            />
+            {loadingCategories ? (
+              <ActivityIndicator size="large" color="#4caf50" />
+            ) : (
+              <FlatList
+                data={categories}
+                keyExtractor={(item) => String(item.id)}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.categoryItem}
+                    onPress={() => {
+                      setCategory(item);
+                      setModalVisible(false);
+                    }}
+                  >
+                    <Text>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <Text style={{ color: "#007bff", marginTop: 12 }}>Cancelar</Text>
             </TouchableOpacity>
@@ -90,18 +121,35 @@ export default function NewTransactionScreen() {
         </View>
       </Modal>
 
+      {/* Valor */}
       <Text style={styles.label}>Valor</Text>
       <TextInput
         style={styles.input}
         placeholder="R$"
         keyboardType="numeric"
-        value={value}
-        onChangeText={setValue}
+        value={amount}
+        onChangeText={setAmount}
       />
 
-      <TouchableOpacity style={styles.addButton}>
-        <Text>Adicionar</Text>
+      <TouchableOpacity
+        style={[
+          styles.addButton,
+          { backgroundColor: !amount || !category ? "#eee" : "#4caf50" },
+        ]}
+        onPress={handleAdd}
+        disabled={loading || !amount || !category}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={{ color: !amount || !category ? "#aaa" : "#fff" }}>
+            Adicionar
+          </Text>
+        )}
       </TouchableOpacity>
+      {error ? (
+        <Text style={{ color: "red", marginTop: 8 }}>{error}</Text>
+      ) : null}
     </View>
   );
 }
@@ -112,6 +160,8 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 24,
     margin: 16,
+    flex: 1,
+    justifyContent: "center",
   },
   title: {
     fontSize: 28,
@@ -119,7 +169,13 @@ const styles = StyleSheet.create({
     marginBottom: 18,
     alignSelf: "center",
   },
-  radioRow: { flexDirection: "row", alignItems: "center", marginVertical: 4 },
+  radioRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 12,
+    marginBottom: 18,
+    gap: 10,
+  },
   label: { fontSize: 18, marginRight: 10 },
   radio: {
     width: 24,
@@ -127,11 +183,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 2,
     borderColor: "#111",
-    marginRight: 14,
+    marginRight: 8,
     backgroundColor: "#fff",
   },
   selectedRadio: { backgroundColor: "#111" },
-  unselectedRadio: { backgroundColor: "#fff", borderColor: "#999" },
   input: {
     backgroundColor: "#ccc",
     borderRadius: 6,
@@ -140,18 +195,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   addButton: {
-    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 5,
     alignItems: "center",
-    marginTop: 10,
-  },
-  cancelButton: {
-    backgroundColor: "#f8f8f8",
-    padding: 16,
-    borderRadius: 5,
-    alignItems: "center",
-    marginTop: 8,
+    marginTop: 20,
+    marginBottom: 10,
   },
   dropdown: {
     backgroundColor: "#eee",

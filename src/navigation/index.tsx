@@ -10,6 +10,7 @@ import BirthDateScreen from "../screens/Register/DOBScreen";
 import ObjectivesScreen from "../screens/Register/GoalsScreen";
 import NameScreen from "../screens/Register/NameScreen";
 import FinishScreen from "../screens/Register/FinishScreen";
+import { RegistrationProvider } from "../contexts/RegistrationContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -46,9 +47,11 @@ function AppRoutes() {
 export default function RootNavigator() {
   return (
     <AuthProvider>
-      <NavigationContainer>
-        <AppRoutes />
-      </NavigationContainer>
+      <RegistrationProvider>
+        <NavigationContainer>
+          <AppRoutes />
+        </NavigationContainer>
+      </RegistrationProvider>
     </AuthProvider>
   );
 }

@@ -1,8 +1,18 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackButtonHeader from "../../components/BackButton";
 import { useNavigation } from "@react-navigation/native";
+import { useRegistration } from "../../contexts/RegistrationContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRegister } from "../../hooks/useAuthApi";
 
 const OBJECTIVES = [
   "Economizar",
@@ -17,13 +27,15 @@ const OBJECTIVES = [
   "testar",
 ];
 
-const ObjectivesScreen: React.FC<{
-  onContinue?: (selected: string[]) => void;
-}> = ({ onContinue }) => {
+const ObjectivesScreen: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
+  const { setObjectives, data } = useRegistration();
+  const { signIn } = useAuth();
+  const navigation = useNavigation();
+
+  const { register, loading } = useRegister();
 
   const toggleObjective = (item: string, index: number) => {
-    // Como há objetivos repetidos, vamos usar index pra seleção única por botão
     const uniqueId = item + index;
     setSelected((old) =>
       old.includes(uniqueId)
@@ -31,21 +43,41 @@ const ObjectivesScreen: React.FC<{
         : [...old, uniqueId]
     );
   };
-  const navigation = useNavigation();
 
-  const handleContinue = () => {
-    // Retorna apenas os textos selecionados
-    if (onContinue) {
-      const values = selected.map((id) => {
-        // id = label+index
-        const match = id.match(/^(.*?)(\d+)$/);
-        if (!match) return id;
-        const idx = Number(match[2]);
-        return OBJECTIVES[idx];
-      });
-      onContinue(values);
+  const handleContinue = async () => {
+    // Mapeia os textos dos objetivos selecionados
+    const values = selected.map((id) => {
+      const match = id.match(/^(.*?)(\d+)$/);
+      if (!match) return id;
+      const idx = Number(match[2]);
+      return OBJECTIVES[idx];
+    });
+
+    setObjectives(values);
+
+    if (!data.name || !data.email || !data.password) {
+      Alert.alert("Dados incompletos", "Preencha todas as etapas do cadastro");
+      return;
     }
-    navigation.navigate("FinishScreen");
+
+    try {
+      // Chama o endpoint de cadastro com todos os dados necessários
+      const user = await register({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      });
+      console.log(user, "ih lalau");
+
+      signIn(user);
+
+      navigation.navigate("FinishScreen");
+    } catch (error: any) {
+      Alert.alert(
+        "Erro ao cadastrar",
+        error?.response?.data?.error || "Falha ao cadastrar usuário"
+      );
+    }
   };
 
   return (
@@ -88,9 +120,13 @@ const ObjectivesScreen: React.FC<{
         <TouchableOpacity
           style={[styles.button, { opacity: selected.length ? 1 : 0.6 }]}
           onPress={handleContinue}
-          disabled={!selected.length}
+          disabled={!selected.length || loading}
         >
-          <Text style={styles.buttonText}>Continuar →</Text>
+          {loading ? (
+            <ActivityIndicator color="#222" />
+          ) : (
+            <Text style={styles.buttonText}>Continuar →</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -98,6 +134,7 @@ const ObjectivesScreen: React.FC<{
 };
 
 const styles = StyleSheet.create({
+  // ... seus estilos anteriores aqui ...
   container: {
     flex: 1,
     backgroundColor: "#f6f6f6",

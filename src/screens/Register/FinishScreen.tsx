@@ -2,8 +2,16 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackButtonHeader from "../../components/BackButton";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigation } from "@react-navigation/native";
+import { useRegistration } from "../../contexts/RegistrationContext";
 
-const FinishScreen: React.FC<{ onStart?: () => void }> = ({ onStart }) => {
+const FinishScreen: React.FC = () => {
+  const { setLogin } = useAuth();
+  const handleStart = () => {
+    setLogin(true);
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <BackButtonHeader />
@@ -15,18 +23,16 @@ const FinishScreen: React.FC<{ onStart?: () => void }> = ({ onStart }) => {
           <View style={styles.imageBox}>
             <Image
               source={require("../../assets/finish.png")}
-              style={{ width: 300, height: 300 }}
+              style={{ width: 170, height: 140, borderRadius: 8 }}
             />
           </View>
-
           <Text style={styles.infoText}>
             Suas informações estão seguras conosco. Vamos direcioná-lo ao seu
             novo painel de controle, onde suas finanças aguardam para serem
             transformadas.
           </Text>
         </View>
-
-        <TouchableOpacity style={styles.button} onPress={onStart}>
+        <TouchableOpacity style={styles.button} onPress={handleStart}>
           <Text style={styles.buttonText}>Começar →</Text>
         </TouchableOpacity>
       </View>

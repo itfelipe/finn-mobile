@@ -10,6 +10,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackButtonHeader from "../../components/BackButton";
 import { useNavigation } from "@react-navigation/native";
+import { useRegistration } from "../../contexts/RegistrationContext";
 
 const BirthDateScreen: React.FC<{ onContinue?: (date: Date) => void }> = ({
   onContinue,
@@ -18,9 +19,12 @@ const BirthDateScreen: React.FC<{ onContinue?: (date: Date) => void }> = ({
   const [showPicker, setShowPicker] = useState(false);
 
   const navigation = useNavigation();
+  const { setBirthDate } = useRegistration();
 
   const handleContinue = () => {
     if (onContinue) onContinue(date);
+    setBirthDate(date);
+
     navigation.navigate("GoalsScreen");
   };
 

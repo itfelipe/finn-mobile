@@ -5,20 +5,32 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BackButtonHeader from "../../components/BackButton";
 import { useNavigation } from "@react-navigation/native";
+import { useRegistration } from "../../contexts/RegistrationContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useRegister } from "../../hooks/useAuthApi";
 
-const NameScreen: React.FC<{ onContinue?: (name: string) => void }> = ({
-  onContinue,
-}) => {
-  const [name, setName] = useState("");
-
+const NameScreen: React.FC = () => {
+  const [name, setNameUser] = useState("");
+  const { setName, data } = useRegistration();
+  const { signIn } = useAuth();
   const navigation = useNavigation();
-  const handleContinue = () => {
-    if (onContinue) onContinue(name);
-    // Ou navegue para próxima tela, ou salve o nome no contexto
+
+  const { register, loading } = useRegister();
+
+  const handleContinue = async () => {
+    if (!name.trim() || !data.email || !data.password) {
+      Alert.alert("Preencha todos os campos");
+      return;
+    }
+
+    setName(name);
+
     navigation.navigate("DOBScreen");
   };
 
@@ -26,8 +38,6 @@ const NameScreen: React.FC<{ onContinue?: (name: string) => void }> = ({
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
       <BackButtonHeader />
       <View style={styles.container}>
-        {/* Logo */}
-
         <View style={{ marginTop: 32 }}>
           <Text style={styles.title}>Como podemos te chamar?</Text>
           <View style={{ height: 18 }} />
@@ -35,7 +45,7 @@ const NameScreen: React.FC<{ onContinue?: (name: string) => void }> = ({
             style={styles.input}
             placeholder="Coloque seu nome ou apelido"
             value={name}
-            onChangeText={setName}
+            onChangeText={setNameUser}
             autoCapitalize="words"
           />
         </View>
@@ -43,9 +53,13 @@ const NameScreen: React.FC<{ onContinue?: (name: string) => void }> = ({
         <TouchableOpacity
           style={[styles.button, { opacity: name.trim() ? 1 : 0.6 }]}
           onPress={handleContinue}
-          disabled={!name.trim()}
+          disabled={loading || !name.trim()}
         >
-          <Text style={styles.buttonText}>Continuar →</Text>
+          {loading ? (
+            <ActivityIndicator color="#222" />
+          ) : (
+            <Text style={styles.buttonText}>Continuar →</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -60,13 +74,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingHorizontal: 16,
     justifyContent: "space-between",
-  },
-  logoText: {
-    marginTop: 10,
-    fontSize: 18,
-    color: "#222",
-    alignSelf: "center",
-    marginBottom: 32,
   },
   title: {
     fontSize: 20,

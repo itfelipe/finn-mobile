@@ -8,11 +8,11 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
-import axios from "axios";
 import BackButtonHeader from "../../components/BackButton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useRegistration } from "../../contexts/RegistrationContext";
 
 const Register: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -23,12 +23,21 @@ const Register: React.FC = () => {
   const [showConfirmar, setShowConfirmar] = useState(false);
 
   const navigation = useNavigation();
+  const {
+    data,
+    setEmail: setEmailCtx,
+    setPassword: setPasswordCtx,
+  } = useRegistration();
 
-  const handleRegister = async () => {
+  const handleRegister = () => {
     if (senha !== confirmar) {
       Alert.alert("Erro", "As senhas não coincidem");
       return;
     }
+
+    setEmailCtx(email);
+    setPasswordCtx(senha);
+
     navigation.navigate("NameScreen");
   };
 

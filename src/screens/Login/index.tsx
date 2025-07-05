@@ -7,34 +7,29 @@ import {
   StyleSheet,
   Alert,
   Image,
+  ActivityIndicator,
 } from "react-native";
-import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-
-const API_URL = "http://SEU_BACKEND_URL/api/auth/login";
+import { useAuth } from "../../contexts/AuthContext";
+import { useLogin } from "../../hooks/useAuthApi";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const navigation = useNavigation();
 
+  const { signIn } = useAuth();
+  const { login, loading } = useLogin();
+
   const handleLogin = async () => {
-    setLoading(true);
     try {
-      const response = await axios.post(API_URL, {
-        email,
-        password: senha,
-      });
-      Alert.alert("Login realizado com sucesso!");
+      const user = await login({ email, password: senha });
+      signIn(user);
     } catch (error: any) {
       Alert.alert(
         "Erro",
-        error?.response?.data?.message || "Falha ao fazer login"
+        error?.response?.data?.error || "Falha ao fazer login"
       );
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -69,9 +64,11 @@ const Login: React.FC = () => {
         onPress={handleLogin}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {loading ? "Entrando..." : "Entrar"}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#222" />
+        ) : (
+          <Text style={styles.buttonText}>Entrar</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

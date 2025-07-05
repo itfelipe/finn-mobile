@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React from "react";
 import {
   View,
@@ -8,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../../contexts/AuthContext";
 
 // Mock do usuário
 const mockUser = {
@@ -21,6 +23,8 @@ const mockUser = {
 const APP_VERSION = "1.0.0";
 
 export default function SettingsScreen() {
+  const { signOut } = useAuth();
+
   const handleLogout = () => {
     Alert.alert("Sair", "Deseja realmente sair da sua conta?", [
       { text: "Cancelar", style: "cancel" },
@@ -28,7 +32,7 @@ export default function SettingsScreen() {
         text: "Sair",
         style: "destructive",
         onPress: () => {
-          /* lógica de logout aqui */
+          signOut();
         },
       },
     ]);
